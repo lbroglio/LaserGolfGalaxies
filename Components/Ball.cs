@@ -9,6 +9,9 @@ namespace LaserGolf.Components
 {
     public class Ball : GameComponent 
 {
+    private Rectangle boundingBox;
+
+
     public Ball(Game game, int screenWidh, int screenHeight) : base(game)
     {
         
