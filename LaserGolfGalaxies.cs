@@ -1,20 +1,22 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LaserGolf.Components;
+using LaserGolf.Components.Obstacles;
+using LaserGolf.Maps;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 
 namespace LaserGolf
 {
-    public class Game1 : Game
+    public class LaserGolfGalaxies : Game
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private List<Rectangle> gameWalls;
 
-        // Textures
-        private Texture2D colorStrip;
+        //  Obstacle Textures
 
-        public Game1()
+        public LaserGolfGalaxies()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -24,6 +26,21 @@ namespace LaserGolf
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            Ball ball = new Ball(this, new Point(0,0));
+
+            Components.Add(ball);
+
+            // Create the Map to play the Game on
+            Map map = new Map(this, 0, 100, 100);
+
+            // Convert the MapElements to drawable MonoGame Objects
+            for (int i = 0; i < map.Obstacles.Count; i++)
+            {
+                LaserGolfObstacle currObs = map.Obstacles[i];
+                currObs.ScaleWidth = 100;
+                currObs.ScaleHeight = 100;
+                Components.Add(currObs);
+            }
 
             base.Initialize();
         }
@@ -32,26 +49,8 @@ namespace LaserGolf
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            colorStrip = Content.Load<Texture2D>("colorStrip");
-
-            // TODO: use this.Content to load your game content here
-
-            Map map = new Map(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
-
-            // Convert the MapElements to drawable MonoGame Objects
-            for(int i=0; i < map.GetElements().Count; i++)
-            {
-                MapElement curr = map.GetElements()[i];
-                gameWalls = new List<Rectangle>();
-
-
-                if (curr.type == ElementTypes.WALL)
-                {
-                    Rectangle wall = new Rectangle((int)(curr.position.X), (int) (curr.position.Y), (int)(curr.size.X), (int)(curr.size.Y));
-                    gameWalls.Add(wall);
-                
-                }   
-            }
+            Services.AddService(typeof(SpriteBatch), _spriteBatch); 
+            base.LoadContent();
         }
 
         protected override void Update(GameTime gameTime)
@@ -66,14 +65,11 @@ namespace LaserGolf
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             _spriteBatch.Begin();
-            _spriteBatch.Draw(colorStrip, northWall, wallColor, Color.White);
-            _spriteBatch.Draw(colorStrip, southWall, wallColor, Color.White)
-            // TODO: Add your drawing code here
-
             base.Draw(gameTime);
+            _spriteBatch.End();
         }
     }
 }

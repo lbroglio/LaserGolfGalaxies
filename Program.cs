@@ -1,3 +1,3 @@
 ﻿
-using var game = new _2dGolf.Game1();
+using var game = new LaserGolf.LaserGolfGalaxies();
 game.Run();
