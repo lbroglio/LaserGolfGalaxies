@@ -40,6 +40,24 @@ namespace LaserGolf.Components.Obstacles
         protected double _scaleHeight = 0.0;
 
         /// <summary>
+        /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the x position of this obstacle.
+        /// 
+        /// If this is set to zero it will be viewed as logically false and no change will be made to the x position
+        /// <br/>
+        /// What scaling the x position means is determined by the indiviudal subclass and subclasses are allowed to disallow (not implement) Load time scaling
+        /// </summary>
+        protected double _scaleX = 0.0;
+
+        /// <summary>
+        /// This is the assumed height of the screen at the time of creation. If not zero this value will be used to scale the  y position of this obstacle.
+        /// 
+        /// If this is set to zero it will be viewed as logically false and no change will be made to the  y position
+        /// <br/>
+        /// What scaling the y position means is determined by the indiviudal subclass and subclasses are allowed to disallow (not implement) Load time scaling
+        /// </summary>
+        protected double _scaleY = 0.0;
+
+        /// <summary>
         /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the width of this obstacle.
         /// 
         /// If this is set to zero it will be viewed as logically false and no change will be made to the width
@@ -63,6 +81,32 @@ namespace LaserGolf.Components.Obstacles
         {
             get { return _scaleHeight; }
             set { _scaleHeight = value; }
+        }
+
+        /// <summary>
+        /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the x position of this obstacle.
+        /// 
+        /// If this is set to zero it will be viewed as logically false and no change will be made to the x position
+        /// <br/>
+        /// What scaling the x position means is determined by the indiviudal subclass and subclasses are allowed to disallow (not implement) Load time scaling
+        /// </summary>
+        public double ScaleX
+        {
+            get { return _scaleX; }
+            set { _scaleX = value; }
+        }
+
+        /// <summary>
+        /// This is the assumed height of the screen at the time of creation. If not zero this value will be used to scale the  y position of this obstacle.
+        /// 
+        /// If this is set to zero it will be viewed as logically false and no change will be made to the  y position
+        /// <br/>
+        /// What scaling the y position means is determined by the indiviudal subclass and subclasses are allowed to disallow (not implement) Load time scaling
+        /// </summary>
+        public double ScaleY
+        {
+            get { return _scaleY; }
+            set { _scaleY = value; }
         }
 
 
@@ -137,31 +181,6 @@ namespace LaserGolf.Components.Obstacles
 
         }
 
-        /// <summary>
-        /// Create a new Wall and intialize its place in the world. Also set its ScaleX and ScaleY properties
-        /// </summary>
-        /// <param name="game">The Game object this Wall is a part of</param>
-        /// <param name="worldPos">A Point holding this Wall's position in the world</param>
-        /// <param name="width">The width (Size along the x axis) of this Wall in pixels</param>
-        /// <param name="height">The height (Size along the y axis) of this Wall in pixels</param>
-        /// <param name="scaleWidth">The assumed screen width when this function is called. 
-        /// Will be later used for scaling the width of the wall. Set to 0 to if width should not be scaled </param>
-        /// <param name="scaleHeight">The assumed screen height when this function is called. 
-        /// Will be later used for scaling the height of the wall. Set to 0 to if height should not be scaled </param>
-        public Wall(Game game, Point worldPos, int width, int height, double scaleWidth, double scaleHeight) : base(game)
-        { 
-            // Create the backing rectangle for this Wall
-            worldRect = new Rectangle(worldPos.X, worldPos.Y, width, height);
-
-            //  Set the color as a location on the Color Strip
-            color = new Rectangle(0, 0, 1, 1);
-
-            //  Set the backing variables for the ScaleX and ScaleY properties
-            _scaleWidth = scaleWidth;
-            _scaleHeight = scaleHeight;
-
-        }
-
         public override bool checkCollides(Ball checkColliding)
         {
             // Create a bounding box (rectangle) for the ball
@@ -201,7 +220,7 @@ namespace LaserGolf.Components.Obstacles
 
         protected override void LoadContent()
         { 
-            // Scale the sides if indicated
+            // Scale the sides and position if indicated
             if (ScaleWidth != 0.0)
             {
                 worldRect.Width = (int) Math.Round((worldRect.Width / ScaleWidth) * Game.GraphicsDevice.Viewport.Width);
@@ -210,6 +229,16 @@ namespace LaserGolf.Components.Obstacles
             if (ScaleHeight != 0.0)
             {
                 worldRect.Height = (int) Math.Round((worldRect.Height / ScaleHeight) * Game.GraphicsDevice.Viewport.Height);
+            }
+
+            if (ScaleX != 0.0)
+            {
+                worldRect.X = (int)Math.Round((worldRect.X / ScaleX) * Game.GraphicsDevice.Viewport.Width);
+            }
+
+            if (ScaleY != 0.0)
+            {
+                worldRect.Y = (int)Math.Round((worldRect.Y / ScaleY) * Game.GraphicsDevice.Viewport.Height);
             }
 
 

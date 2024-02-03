@@ -37,10 +37,10 @@ namespace LaserGolf
             for (int i = 0; i < map.Obstacles.Count; i++)
             {
                 LaserGolfObstacle currObs = map.Obstacles[i];
-                currObs.ScaleWidth = 100;
-                currObs.ScaleHeight = 100;
                 Components.Add(currObs);
             }
+
+            Components.Add(map.Hole);
 
             base.Initialize();
         }

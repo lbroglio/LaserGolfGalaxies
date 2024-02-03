@@ -1,14 +1,17 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace LaserGolf.Components
 {
-    internal class Ball : DrawableGameComponent
+
+
+
+    internal class GolfHole : DrawableGameComponent
     {
         // Statics
         /// <summary>
@@ -18,67 +21,72 @@ namespace LaserGolf.Components
         /// <summary>
         /// Retrieve the Texture Object holding the loaded texture for this ball
         /// </summary>
-        public static Texture2D Texture {
+        public static Texture2D Texture
+        {
             get { return _texture; }
         }
 
-        // Instance variables and properties
+
         /// <summary>
-        /// Stores the location of this Ball on the screen
+        /// The position of the hole in the world
         /// </summary>
         private Point _position;
+
         /// <summary>
-        /// Stores the current velocity (Change in position every second of game time) of this Ball
+        /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the width of this obstacle.
+        /// 
+        /// If this is set to zero it will be viewed as logically false and no change will be made to the width
         /// </summary>
-        private Vector2 _velocity;
-        /// <summary>
-        /// 2D Array which stores the location of the individual pixels of this ball. Used for advanced collision detection.
-        /// </summary>
-        private Color[,] _pixelColor;
-        /// <summary>
-        /// Number of pixels to scale the diameter of this Ball to for hit detection and when it is drawn on the screen 
-        /// </summary>
-        private int _scale;
+        private int _scale = 0;
+
         /// <summary>
         /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the x position of this obstacle.
         /// 
         /// If this is set to zero it will be viewed as logically false and no change will be made to the x position
         /// </summary>
-        protected double _scaleX = 0.0;
+        private double _scaleX = 0.0;
 
         /// <summary>
         /// This is the assumed height of the screen at the time of creation. If not zero this value will be used to scale the  y position of this obstacle.
         /// 
         /// If this is set to zero it will be viewed as logically false and no change will be made to the  y position
         /// </summary>
-        protected double _scaleY = 0.0;
+        private double _scaleY = 0.0;
 
         /// <summary>
-        /// Retrieve or Set the Point object which holds the location of this Ball on the screen
+        /// Retrieve the array which stores the location of the individual pixels of this ball. Used for advanced collision detection.
+        /// </summary>
+        private Color[,] _pixelColor;
+
+        /// <summary>
+        /// Retrieve the array which stores the location of the individual pixels of this ball. Used for advanced collision detection.
+        /// </summary>
+        public Color[,] PixelColor
+        {
+            get { return _pixelColor; }
+        }
+
+        /// <summary>
+        /// The radius of the hole in pixels
         /// </summary>
         public Point Position
         {
             get { return _position; }
             set { _position = value; }
         }
-        /// <summary>
-        /// Retrieve or set the Vector2 object which holds the amount the Position of this ball changes every second of game time
-        /// </summary>
-        public Vector2 Velocity {
-            get { return _velocity; }
-            set { _velocity = value; }
-        }
-        /// <summary>
-        /// Retrieve the array which stores the location of the individual pixels of this ball. Used for advanced collision detection.
-        /// </summary>
-        public Color[,] PixelColor {
-            get { return _pixelColor; }
-        }
 
         /// <summary>
-        /// Number of pixels to scale the diameter of this Ball to for hit detection and when it is drawn on the screen 
+        /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the width of this obstacle.
+        /// 
+        /// If this is set to zero it will be viewed as logically false and no change will be made to the width
         /// </summary>
-        public int Scale { get{ return _scale; } }
+        public int Scale
+        {
+            get { return _scale; }
+            set { _scale = value; }
+        }
+
+
         /// <summary>
         /// This is the assumed width of the screen at the time of creation. If not zero this value will be used to scale the x position of this obstacle.
         /// 
@@ -101,25 +109,19 @@ namespace LaserGolf.Components
             set { _scaleY = value; }
         }
 
+        public GolfHole(Game game, Point worldPos) : base(game)
+        {
+            // Set the position
+            _position = worldPos;
 
-        /// <summary>
-        /// Create a new Ball Object
-        /// </summary>
-        /// <param name="game">The game object this Ball will be a part of</param>
-        /// <param name="startPosition"> The location on the screen that this ball starts at</param>
-        /// <param name="texture">The loaded Texture2D Object that hodls the Sprite for this Ball</param>
-        public Ball(Game game, Point startPosition) : base(game)
-        {   
-            // Intialize starting values
-            _velocity = Vector2.Zero;
-            _position = startPosition;
         }
 
         protected override void LoadContent()
         {
             // Load  the texture for the ball but only once
-            if(_texture == null){
-                _texture = Game.Content.Load<Texture2D>("LGGBallTexture");
+            if (_texture == null)
+            {
+                _texture = Game.Content.Load<Texture2D>("LGGHoleTexture");
             }
 
             // Build the PixelColor arrays from the Texture
@@ -141,7 +143,8 @@ namespace LaserGolf.Components
 
 
             // Set scale values
-            _scale = Game.GraphicsDevice.Viewport.Width / 40;
+            _scale = (int) 
+                Math.Round((Game.GraphicsDevice.Viewport.Width / 40) * 1.5);
 
             if (ScaleX != 0.0)
             {
@@ -157,20 +160,14 @@ namespace LaserGolf.Components
             base.LoadContent();
         }
 
-        public override void Update(GameTime gameTime)
-        {
-            // Update position based on  Velocity
-           _position.X += (int)Math.Round(_velocity.X * gameTime.ElapsedGameTime.TotalSeconds);
-           _position.Y += (int)Math.Round(_velocity.Y * gameTime.ElapsedGameTime.TotalSeconds);
-           base.Update(gameTime);
-        }
-
 
         public override void Draw(GameTime gameTime)
         {
-            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_texture, new Rectangle(_position.X, _position.Y, _scale, _scale), new Rectangle(0, 0, _texture.Width, _texture.Height), Color.White);
+            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_texture, new Rectangle(_position.X, _position.Y, _scale, _scale), new Rectangle(0, 0, _texture.Width, _texture.Height), Color.Green);
             base.Draw(gameTime);
 
         }
+
+
     }
 }
