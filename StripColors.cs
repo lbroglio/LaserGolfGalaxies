@@ -10,11 +10,12 @@ namespace LaserGolf
     internal static class StripColors
     {
   
-        public static int RED = 0;
-        public static int GREEN = 2;
-        public static int BLUE = 4;
-        public static int BLACK = 6;
-        public static int WHITE = 8;
+        public static int RED = 1;
+        public static int GREEN = 4;
+        public static int BLUE = 7;
+        public static int YELLOW = 10;
+        public static int BLACK = 13;
+        public static int WHITE = 16;
 
     }
 }

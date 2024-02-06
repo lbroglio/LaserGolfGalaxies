@@ -141,7 +141,7 @@ namespace LaserGolf.Components.Obstacles
         {
             if (colorStrip == null)
             {
-                colorStrip = Game.Content.Load<Texture2D>("LGGColorStrip");
+                colorStrip = ((TextureContainer)Game.Services.GetService(typeof(TextureContainer))).ColorStrip;
             }
 
             base.LoadContent();
@@ -177,14 +177,17 @@ namespace LaserGolf.Components.Obstacles
             worldRect = new Rectangle(worldPos.X, worldPos.Y, width, height);
 
             //  Set the color as a location on the Color Strip
-            color = new Rectangle(9, 0, 1, 1);
+            color = new Rectangle(StripColors.WHITE, 0, 1, 1);
 
         }
 
         public override bool checkCollides(Ball checkColliding)
         {
+            int ballXPos = (int) Math.Round(checkColliding.Position.X);
+            int ballYPos = (int)Math.Round(checkColliding.Position.Y);
+
             // Create a bounding box (rectangle) for the ball
-            Rectangle boundingBox = new Rectangle(checkColliding.Position.X, checkColliding.Position.Y, Ball.Texture.Width, Ball.Texture.Height);
+            Rectangle boundingBox = new Rectangle(ballXPos, ballYPos, Ball.Texture.Width, Ball.Texture.Height);
 
             // Check if this Wall intersects the bounding box for the Ball
             if(worldRect.Intersects(boundingBox))
@@ -196,12 +199,13 @@ namespace LaserGolf.Components.Obstacles
                 {
                     for(int j= intersect.Y; j < intersect.Y + intersect.Height; j++)
                     {
-                        int ballPoint = checkColliding.PixelColor[i - checkColliding.Position.X, j - checkColliding.Position.Y].A;
+                        int ballPoint = checkColliding.PixelColor[i - ballXPos, j - ballYPos].A;
                         //int wallPoint = imColor[x - (int)imPos.X, y - (int)imPos.Y].A;
 
                         if(ballPoint != 0)
                         {
                             // TODO - Implement a check to prevent double collision
+                            //TODO - Implement rotation
                             return true;
 
                         }

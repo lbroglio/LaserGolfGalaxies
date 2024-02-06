@@ -1,9 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using System.Collections.Generic;
+﻿using LaserGolf.Components;
 using LaserGolf.Components.Obstacles;
-using LaserGolf.Components;
+using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 
 
 namespace LaserGolf.Maps
@@ -15,19 +14,6 @@ namespace LaserGolf.Maps
     {
         TUNNEL,
         MAZE
-    }
-
-    /// <summary>
-    /// Holds the type a <see cref="MapElement"/> is.Used to tell the Game how to draw this element
-    /// </summary>
-    public enum ElementTypes
-    {
-        HOLE,
-        START_POINT,
-        WALL,
-        ELEVATION_DOWN,
-        ELEVATION_UP,
-        GREEN
     }
 
     /// <summary>
@@ -52,6 +38,11 @@ namespace LaserGolf.Maps
         private GolfHole _hole;
 
         /// <summary>
+        /// Vector holding where on the map the ball starts
+        /// </summary>
+        private Vector2 _ballPos;
+
+        /// <summary>
         /// List of the Obstacles that are on this map. 
         /// </summary>
         public List<LaserGolfObstacle> Obstacles { get { return _obstacles; } }
@@ -62,6 +53,15 @@ namespace LaserGolf.Maps
         /// List of the Obstacles that are on this map. 
         /// </summary>
         public GolfHole Hole { get { return _hole; } }
+
+        /// <summary>
+        /// Vector holding where on the map the ball starts
+        /// </summary>
+        public Vector2 BallPos
+        {
+            get { return _ballPos; }
+            set { _ballPos = value; }
+        }
 
         /// <summary>
         /// Create a procedurally generated map
@@ -221,15 +221,33 @@ namespace LaserGolf.Maps
             boxRight.ScaleX = 100;
             boxRight.ScaleY = 75;
 
+            // Add a rectangle in the corner for bouncing off of 
+            wallPosX = (int)System.Math.Round((screenWidth * 0.1) + 4, 0);
+            wallPosY = (int)System.Math.Round(screenHeight * 0.1, 0);
+            wallSize = (int)System.Math.Round(screenHeight * 0.075, 0);
+
+            /*
+            // Create the Wall Object
+            Wall bounceWall = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
+            bounceWall.ScaleHeight = 75;
+            bounceWall.ScaleX = 100;
+            bounceWall.ScaleY = 75;
+            */
+
 
             // Create hole
             int holePosX = (int) Math.Round(screenWidth * 0.65, 0);
-            int holePosY = (int)Math.Round(screenHeight * 0.5, 0);
+            int holePosY = (int)Math.Round(screenHeight * 0.5 , 0);
             GolfHole hole = new GolfHole(game, new Point(holePosX, holePosY));
             hole.ScaleX = 100;
             hole.ScaleY = 75;
             _hole = hole;
 
+            //  Set ball starting position
+            float ballPosX = (float)((screenWidth * 0.1) + ((screenWidth / 40) * 1.25));
+            float ballPosY = screenHeight * 0.65F;
+            _ballPos = new Vector2(ballPosX, ballPosY);
+            
 
             // Add the items to the map's obstacle list
             _obstacles.Add(leftWall);
@@ -241,6 +259,8 @@ namespace LaserGolf.Maps
             _obstacles.Add(boxBottom);
             _obstacles.Add(boxTop);
             _obstacles.Add(boxRight);
+            //_obstacles.Add(bounceWall);
+
 
         }
     }
