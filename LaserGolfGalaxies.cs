@@ -14,8 +14,9 @@ namespace LaserGolf
         private SpriteBatch _spriteBatch;
         private List<Rectangle> gameWalls;
         private Ball playBall;
+        private Point startLoc;
 
-        public readonly int FRICTION_COEFFICENT = 1;
+        public readonly int FRICTION_COEFFICENT = 10;
 
         public LaserGolfGalaxies()
         {
@@ -66,10 +67,19 @@ namespace LaserGolf
 
             Services.AddService(typeof(SpriteBatch), _spriteBatch);
             base.LoadContent();
+
+            //Set the start loc 
+            startLoc = new Point((int)System.Math.Round(playBall.Position.X), (int)System.Math.Round(playBall.Position.Y));
+
+
+
         }
 
         protected override void Update(GameTime gameTime)
         {
+
+  
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
            
@@ -86,8 +96,8 @@ namespace LaserGolf
             // Draw the starting rectangle for the golf ball
             int rectWidth = (int) System.Math.Round((GraphicsDevice.Viewport.Width / 40) * 1.5);
             int rectHeight = 4;
-            int rectX = (int)System.Math.Round(playBall.Position.X - ((GraphicsDevice.Viewport.Width / 40) * 0.25));
-            int rectY = (int)System.Math.Round(playBall.Position.Y + ( (GraphicsDevice.Viewport.Width / 40) * 1.1));
+            int rectX = (int)System.Math.Round(startLoc.X - ((GraphicsDevice.Viewport.Width / 40) * 0.25));
+            int rectY = (int)System.Math.Round(startLoc.Y + ( (GraphicsDevice.Viewport.Width / 40) * 1.1));
             Rectangle destRect = new Rectangle(rectX, rectY, rectWidth, rectHeight);
 
 
