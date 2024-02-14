@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LaserGolf.ConfigClasses;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -141,19 +142,21 @@ namespace LaserGolf.Components
 
             }
 
+            PlayScreen screen = (PlayScreen)Game.Services.GetService(typeof(PlayScreen));
+
 
             // Set scale values
             _scale = (int) 
-                Math.Round((Game.GraphicsDevice.Viewport.Width / 40) * 1.5);
+                Math.Round((screen.Width / 40) * 1.5);
 
             if (ScaleX != 0.0)
             {
-                _position.X = (int)Math.Round((_position.X / ScaleX) * Game.GraphicsDevice.Viewport.Width);
+                _position.X = (int)Math.Round((_position.X / ScaleX) * screen.Width);
             }
 
             if (ScaleY != 0.0)
             {
-                _position.Y = (int)Math.Round((_position.Y / ScaleY) * Game.GraphicsDevice.Viewport.Height);
+                _position.Y = (int)Math.Round((_position.Y / ScaleY) * screen.Height);
             }
 
 

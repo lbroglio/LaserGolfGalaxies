@@ -66,7 +66,7 @@ namespace LaserGolf.Maps
         /// <summary>
         /// Create a procedurally generated map
         /// </summary>
-        public Map(int screenWidth, int screenHeight)
+        public Map(Game game, double aspectRatio)
         {
 
         }
@@ -79,79 +79,82 @@ namespace LaserGolf.Maps
         /// Layouts:
         /// 0 = Standard tunnel map
         /// </param>
-        /// <param name="screenLength"> The assumed width of the Game's screen Map will be made to the scale of this width</param>
-        /// <param name="screenHeight"> The assumed height of the Game's screen Map will be made to the scale of this height</param>
+        /// <param name="screenRatioMult"> A number which you can multiply the width of the play screen by to get the height. 
+        /// Used to prevent stretching when scaling
+        /// </param>
 
-        public Map(Game game, int preset, int screenWidth, int screenHeight)
+        public Map(Game game, int preset, double screenRatioMult)
         {
             _obstacles = new List<LaserGolfObstacle>();
 
             if (preset == 0)
             {
-                createStandardTunnel(game, screenWidth, screenHeight);
+                createStandardTunnel(game, screenRatioMult);
             }
         }
 
         /// <summary>
         /// Function to create the standard tunnel preset (Preset 0)
         /// </summary>
-        private void createStandardTunnel(Game game, int screenWidth, int screenHeight)
+        private void createStandardTunnel(Game game, double screenRatioMult)
         {
             int lineSize = 8;
+
+            int screenSize = 100;
 
             // Set the far left wall for the tunnel
 
             // Calculate the locations for the wall by percentage of screen and round them
-            int wallPosX = (int)System.Math.Round(screenWidth * 0.1, 0);
-            int wallPosY = (int)System.Math.Round(screenHeight * 0.1, 0);
-            int wallSize = (int)System.Math.Round(screenHeight * 0.5, 0);
+            int wallPosX = (int)System.Math.Round(screenSize * 0.1, 0);
+            int wallPosY = (int)System.Math.Round(screenSize * 0.1, 0);
+            int wallSize = (int)System.Math.Round(screenSize * 0.5, 0);
 
             // Create the Wall Object
             Wall leftWall = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            leftWall.ScaleHeight = 75;
-            leftWall.ScaleX = 100;
-            leftWall.ScaleY = 75;
+            leftWall.ScaleHeight = (int) Math.Round(screenSize * screenRatioMult);
+            leftWall.ScaleX = screenSize;
+            leftWall.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
             // Set the lower right wall of the tunnel start
 
             // Shift the starting position and size for the wall
-            wallPosX += ((screenWidth / 40) * 3);
-            wallPosY += ((screenWidth / 40) * 3);// + (lineSize/ screenWidth);
-            wallSize -= ((screenWidth / 40) * 3) + (lineSize/ screenWidth);
+            wallPosX += ((screenSize / 40) * 3);
+            wallPosY += ((screenSize / 40) * 3);// + (lineSize/ screenSize);
+            wallSize -= ((screenSize / 40) * 3) + (lineSize/ screenSize);
 
             // Create the wall Object
             Wall rightWall = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            rightWall.ScaleHeight = 75;
-            rightWall.ScaleX = 100;
-            rightWall.ScaleY = 75;
+            rightWall.ScaleHeight = (int) Math.Round(screenSize * screenRatioMult);
+            rightWall.ScaleX = screenSize;
+            rightWall.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
 
             // Create A wall to enclose the top of the tunnel
 
             //Calculate the location and size for the wall
-            wallPosX = (int) (System.Math.Round(screenWidth * 0.1, 0));
-            wallPosY = (int) System.Math.Round((screenHeight * 0.1) +  (lineSize/ screenWidth), 0);
-            wallSize = (int) System.Math.Round(screenWidth * 0.3, 0);
+            wallPosX = (int) (System.Math.Round(screenSize * 0.1, 0));
+            wallPosY = (int) System.Math.Round((screenSize * 0.1) +  (lineSize/ screenSize), 0);
+            wallSize = (int) System.Math.Round(screenSize * 0.3, 0);
 
             // Create the Wall Object
             Wall tunnelTop = new Wall(game, new Point(wallPosX, wallPosY), wallSize, lineSize);
-            tunnelTop.ScaleWidth = 100;
-            tunnelTop.ScaleX = 100;
-            tunnelTop.ScaleY = 75;
+            tunnelTop.ScaleWidth = screenSize;
+            tunnelTop.ScaleX = screenSize;
+            tunnelTop.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
 
             // Create A wall to enclose the bottok of the tunnel
 
             //Calculate the location and size for the wall
-            wallPosX = (int) (System.Math.Round((screenWidth * 0.1) + ((screenWidth / 40) * 3), 0));
-            wallPosY = (int) (System.Math.Round((screenHeight * 0.1) + ((screenWidth / 40) * 3), 0));
-            wallSize = (int) System.Math.Round((screenHeight * 0.3) - ((screenWidth / 40) * 3), 0); 
+            wallPosX = (int) (System.Math.Round((screenSize * 0.1) + ((screenSize / 40) * 3), 0));
+            wallPosY = (int) (System.Math.Round((screenSize * 0.1) + ((screenSize / 40) * 3), 0));
+            wallSize = (int) System.Math.Round((screenSize * 0.3) - ((screenSize / 40) * 3), 0); 
 
             // Create the Wall Object
             Wall tunnelBottom = new Wall(game, new Point(wallPosX, wallPosY), wallSize, lineSize);
-            tunnelBottom.ScaleWidth = 100;
-            tunnelBottom.ScaleX = 100;
-            tunnelBottom.ScaleY = 75;
+            tunnelBottom.ScaleWidth = screenSize;
+            tunnelBottom.ScaleX = screenSize;
+            tunnelBottom.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
 
             //  Build the end box
@@ -159,93 +162,136 @@ namespace LaserGolf.Maps
             // Build the boxes left top wall
 
             // Calculate the locations for the wall by percentage of screen and round them
-            wallPosX = (int)System.Math.Round(screenWidth * 0.4, 0);
-            wallPosY = (int)System.Math.Round(screenHeight * 0.05, 0);
-            wallSize = (int)System.Math.Round(screenHeight * 0.05, 0);
+            wallPosX = (int)System.Math.Round(screenSize * 0.4, 0);
+            wallPosY = (int)System.Math.Round(screenSize * 0.05, 0);
+            wallSize = (int)System.Math.Round(screenSize * 0.05, 0);
 
             // Create the Wall Object
             Wall boxLeftTop = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            boxLeftTop.ScaleHeight = 75;
-            boxLeftTop.ScaleX = 100;
-            boxLeftTop.ScaleY = 75;
+            boxLeftTop.ScaleHeight = (int) Math.Round(screenSize * screenRatioMult);
+            boxLeftTop.ScaleX = screenSize;
+            boxLeftTop.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
             // Build the boxes left bottom wall
 
             // Calculate the locations for the wall by percentage of screen and round them
-            wallPosX = (int)System.Math.Round(screenWidth * 0.4, 0);
-            wallPosY = (int)System.Math.Round((screenHeight * 0.1) + ((screenWidth / 40) * 3), 0);
-            wallSize = (int)System.Math.Round(screenHeight * 0.5, 0);
+            wallPosX = (int)System.Math.Round(screenSize * 0.4, 0);
+            wallPosY = (int)System.Math.Round((screenSize * 0.1) + ((screenSize / 40) * 3), 0);
+            wallSize = (int)System.Math.Round(screenSize * 0.5, 0);
 
             // Create the Wall Object
             Wall boxLeftBottom = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            boxLeftBottom.ScaleHeight = 75;
-            boxLeftBottom.ScaleX = 100;
-            boxLeftBottom.ScaleY = 75;
+            boxLeftBottom.ScaleHeight = (int) Math.Round(screenSize * screenRatioMult);
+            boxLeftBottom.ScaleX = screenSize;
+            boxLeftBottom.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
             // Build the boxes bottom wall
 
             // Calculate the locations for the wall by percentage of screen and round them
-            wallPosX = (int)System.Math.Round(screenWidth * 0.4, 0);
-            wallPosY = (int)System.Math.Round((screenHeight * 0.6) + ((screenWidth / 40) * 3), 0);
-            wallSize = (int)System.Math.Round(screenWidth * 0.5, 0);
+            wallPosX = (int)System.Math.Round(screenSize * 0.4, 0);
+            wallPosY = (int)System.Math.Round((screenSize * 0.6) + ((screenSize / 40) * 3), 0);
+            wallSize = (int)System.Math.Round(screenSize * 0.5, 0);
 
             // Create the Wall Object
             Wall boxBottom = new Wall(game, new Point(wallPosX, wallPosY), wallSize, lineSize);
-            boxBottom.ScaleWidth = 100;
-            boxBottom.ScaleX = 100;
-            boxBottom.ScaleY = 75;
+            boxBottom.ScaleWidth = screenSize;
+            boxBottom.ScaleX = screenSize;
+            boxBottom.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
             // Build the boxes top wall
 
             // Calculate the locations for the wall by percentage of screen and round them
-            wallPosX = (int)System.Math.Round(screenWidth * 0.4, 0);
-            wallPosY = (int)System.Math.Round((screenHeight * 0.05), 0);
-            wallSize = (int)System.Math.Round(screenWidth * 0.5, 0);
+            wallPosX = (int)System.Math.Round(screenSize * 0.4, 0);
+            wallPosY = (int)System.Math.Round((screenSize * 0.05), 0);
+            wallSize = (int)System.Math.Round(screenSize * 0.5, 0);
 
             // Create the Wall Object
             Wall boxTop = new Wall(game, new Point(wallPosX, wallPosY), wallSize, lineSize);
-            boxTop.ScaleWidth = 100;
-            boxTop.ScaleX = 100;
-            boxTop.ScaleY = 75;
+            boxTop.ScaleWidth = screenSize;
+            boxTop.ScaleX = screenSize;
+            boxTop.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
             // Build the boxes Right wall
 
             // Calculate the locations for the wall by percentage of screen and round them
-            wallPosX = (int)System.Math.Round(screenWidth * 0.9, 0);
-            wallPosY = (int)System.Math.Round(screenHeight * 0.05, 0);
-            wallSize = (int)System.Math.Round((screenHeight * 0.55) + ((screenWidth / 40) * 3), 0);
+            wallPosX = (int)System.Math.Round(screenSize * 0.9, 0);
+            wallPosY = (int)System.Math.Round(screenSize * 0.05, 0);
+            wallSize = (int)System.Math.Round((screenSize * 0.55) + ((screenSize / 40) * 3), 0);
 
             // Create the Wall Object
             Wall boxRight = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            boxRight.ScaleHeight = 75;
-            boxRight.ScaleX = 100;
-            boxRight.ScaleY = 75;
+            boxRight.ScaleHeight = (int) Math.Round(screenSize * screenRatioMult);
+            boxRight.ScaleX = screenSize;
+            boxRight.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
 
             // Add a rectangle in the corner for bouncing off of 
-            wallPosX = (int)System.Math.Round((screenWidth * 0.1) + 4, 0);
-            wallPosY = (int)System.Math.Round(screenHeight * 0.1, 0);
-            wallSize = (int)System.Math.Round(screenHeight * 0.075, 0);
+            wallPosX = (int)System.Math.Round((screenSize * 0.1) + 4, 0);
+            wallPosY = (int)System.Math.Round(screenSize * 0.1, 0);
+            wallSize = (int)System.Math.Round(screenSize * 0.075, 0);
 
             /*
             // Create the Wall Object
             Wall bounceWall = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            bounceWall.ScaleHeight = 75;
-            bounceWall.ScaleX = 100;
-            bounceWall.ScaleY = 75;
+            bounceWall.ScaleHeight = (int) Math.Round(screenSize * aspectRatio);
+            bounceWall.ScaleX = screenSize;
+            bounceWall.ScaleY = (int) Math.Round(screenSize * aspectRatio);
             */
+
+            // Create borders
+
+            BorderField leftBorder = new BorderField(game, new Point(0, 0), lineSize, screenSize);
+            leftBorder.ScaleX = screenSize;
+            leftBorder.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+            leftBorder.ScaleHeight = screenSize;
+
+
+            BorderField topBorder = new BorderField(game, new Point(lineSize, 0), screenSize, lineSize);
+            topBorder.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+            topBorder.ScaleWidth = screenSize;
+
+            BorderField bottomBorder = new BorderField(game, new Point(0, (int)Math.Round(screenSize * 0.99)), screenSize, lineSize);
+            bottomBorder.ScaleX = screenSize;
+            bottomBorder.ScaleY = screenSize;
+            bottomBorder.ScaleWidth = screenSize;
+
+            BorderField rightBorder = new BorderField(game, new Point((int)Math.Round(screenSize * 0.99), 0), lineSize, screenSize);
+            rightBorder.ScaleX = screenSize;
+            rightBorder.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+            rightBorder.ScaleHeight = screenSize;
+
+            // Add Slopes
+            float slopeX = (screenSize * 0.1f);
+            float slopeY = screenSize * 0.3f;
+
+            Slope upSlope = new Slope(game, new Vector2(slopeX, slopeY), ((screenSize / 40) * 3), ((screenSize / 40) * 3), new Vector2(0, 150));
+            upSlope.ScaleWidth = screenSize;
+            upSlope.ScaleHeight = screenSize;
+            upSlope.ScaleX = screenSize;
+            upSlope.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+
+
+            slopeX = (screenSize * 0.3f);
+            slopeY = (screenSize * 0.1f) + (lineSize / screenSize);
+
+            Slope downSlope = new Slope(game, new Vector2(slopeX, slopeY), ((screenSize / 40) * 3), ((screenSize / 40) * 3), new Vector2(100, 0));
+            downSlope.ScaleWidth = screenSize;
+            downSlope.ScaleHeight = screenSize;
+            downSlope.ScaleX = screenSize;
+            downSlope.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+
 
 
             // Create hole
-            int holePosX = (int) Math.Round(screenWidth * 0.65, 0);
-            int holePosY = (int)Math.Round(screenHeight * 0.5 , 0);
+            int holePosX = (int) Math.Round(screenSize * 0.65, 0);
+            int holePosY = (int)Math.Round(screenSize * 0.5 , 0);
             GolfHole hole = new GolfHole(game, new Point(holePosX, holePosY));
-            hole.ScaleX = 100;
-            hole.ScaleY = 75;
+            hole.ScaleX = screenSize;
+            hole.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
             _hole = hole;
 
             //  Set ball starting position
-            float ballPosX = (float)((screenWidth * 0.1) + ((screenWidth / 40) * 1.25));
-            float ballPosY = screenHeight * 0.65F;
+            float ballPosX = (float)((screenSize * 0.1) + ((screenSize / 40) * 1.25));
+            float ballPosY = screenSize * 0.65F;
             _ballPos = new Vector2(ballPosX, ballPosY);
             
 
@@ -259,6 +305,13 @@ namespace LaserGolf.Maps
             _obstacles.Add(boxBottom);
             _obstacles.Add(boxTop);
             _obstacles.Add(boxRight);
+            _obstacles.Add(leftBorder);
+            _obstacles.Add(rightBorder);
+            _obstacles.Add(topBorder);
+            _obstacles.Add(bottomBorder);
+            _obstacles.Add(upSlope);
+            _obstacles.Add(downSlope);
+
             //_obstacles.Add(bounceWall);
 
 

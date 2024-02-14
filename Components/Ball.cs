@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using LaserGolf.ConfigClasses;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -19,7 +20,7 @@ namespace LaserGolf.Components
         /// Variable which holds the base speed used to easily change the balls speed without adjusting values as they are scaled 
         /// in code.
         /// </summary>
-        private readonly float BASE_SPEED = 50f;
+        private readonly float BASE_SPEED = 150f;
         /// <summary>
         /// The Texture object which holds the loaded Texture for this image
         /// </summary>
@@ -182,16 +183,18 @@ namespace LaserGolf.Components
 
 
             // Set scale values
-            _scale = Game.GraphicsDevice.Viewport.Width / 40;
+            PlayScreen screen = (PlayScreen) Game.Services.GetService(typeof(PlayScreen));
+
+            _scale = screen.Width / 40;
 
             if (ScaleX != 0.0)
             {
-                _position.X = (int)Math.Round((_position.X / ScaleX) * Game.GraphicsDevice.Viewport.Width);
+                _position.X = (int)Math.Round((_position.X / ScaleX) * screen.Width);
             }
 
             if (ScaleY != 0.0)
             {
-                _position.Y = (int)Math.Round((_position.Y / ScaleY) * Game.GraphicsDevice.Viewport.Height);
+                _position.Y = (int)Math.Round((_position.Y / ScaleY) * screen.Height);
             }
 
 
@@ -200,63 +203,34 @@ namespace LaserGolf.Components
 
         public override void Update(GameTime gameTime)
         {
-            
+            PlayScreen screen = (PlayScreen)Game.Services.GetService(typeof(PlayScreen));
+
+
             // If the Ball is currently moving
-            if(_velocity.X != 0 || _velocity.Y != 0)
+            if (_velocity.X != 0 || _velocity.Y != 0)
             {
 
                 // Update position based on  Velocity
                 _position.X += (float) (_velocity.X * gameTime.ElapsedGameTime.TotalSeconds);
                 _position.Y += (float) (_velocity.Y * gameTime.ElapsedGameTime.TotalSeconds);
 
-                //  Degrade velocity by the Games set friction values
+                //  Degrade velocity by the Game's set friction value
+                _velocity.X -= (float)(_velocity.X * (((LaserGolfGalaxies)Game).FRICTION_COEFFICENT * gameTime.ElapsedGameTime.TotalSeconds));
+                _velocity.Y -= (float)(_velocity.Y * (((LaserGolfGalaxies)Game).FRICTION_COEFFICENT * gameTime.ElapsedGameTime.TotalSeconds));
 
-                // Degrade the x velocity proportional to its percentage of the total velocity
-                int xDegradation = (int) Math.Round(((LaserGolfGalaxies)Game).FRICTION_COEFFICENT * (_velocity.X / (_velocity.X + _velocity.Y)));
-                int yDegradation = (int) Math.Round(((LaserGolfGalaxies)Game).FRICTION_COEFFICENT * (_velocity.Y / (_velocity.X + _velocity.Y)));
-
-                if (_velocity.X > 0)
+                //  Set velocity to zero as it gets close
+                if (Math.Abs(_velocity.X) < 1)
                 {
-                    _velocity.X -= (float)(xDegradation * gameTime.ElapsedGameTime.TotalSeconds);
-
-                    // If the velocity went below zero set it to zero 
-                    if (_velocity.X < 0)
-                    {
-                        _velocity.X = 0;
-                    }
-                }
-                else if(_velocity.X < 0)                
-                {
-                    _velocity.X += (float)(xDegradation * gameTime.ElapsedGameTime.TotalSeconds);
-
-                    // If the velocity went above zero set it to zero 
-                    if (_velocity.X > 0)
-                    {
-                        _velocity.X = 0;
-                    }
+                    _velocity.X = 0;
                 }
 
-                if (_velocity.Y > 0)
+                if (Math.Abs(_velocity.Y) < 1)
                 {
-                    _velocity.Y -= (float)(yDegradation * gameTime.ElapsedGameTime.TotalSeconds);
-
-                    // If the velocity went below zero set it to zero 
-                    if (_velocity.Y < 0)
-                    {
-                        _velocity.Y = 0;
-                    }
+                    _velocity.Y = 0;
                 }
 
-                else if(_velocity.Y < 0) 
-                {
-                    _velocity.Y += (float)(yDegradation * gameTime.ElapsedGameTime.TotalSeconds);
 
-                    // If the velocity went above zero set it to zero 
-                    if (_velocity.Y > 0)
-                    {
-                        _velocity.Y = 0;
-                    }
-                }
+
             }
             // If the ball isn't moving handle input if sufficent time has passed since the last input was read
             else 
@@ -266,7 +240,7 @@ namespace LaserGolf.Components
                 // Handle angle change
                 if(state.IsKeyDown(Keys.D) || state.IsKeyDown(Keys.Right))
                 {
-                    shotAngle += 10;
+                    shotAngle += 5;
 
                     // Wrap around if over 
                     if(shotAngle >= 360)
@@ -276,7 +250,7 @@ namespace LaserGolf.Components
                 }
                 else if (state.IsKeyDown(Keys.A) || state.IsKeyDown(Keys.Left))
                 {
-                    shotAngle -= 10;
+                    shotAngle -= 5;
 
                     //Wrap around if below zero
                     if (shotAngle < 0)
@@ -310,7 +284,7 @@ namespace LaserGolf.Components
                 if (state.IsKeyDown(Keys.Space))
                 {
                     // Scale the speed to screen size
-                    int screenHeight = Game.GraphicsDevice.Viewport.Height;
+                    int screenHeight = screen.Height;
                     float scaledSpeed = BASE_SPEED * (screenHeight / 100);
 
                     // Scale the speed by the shot force
@@ -362,7 +336,7 @@ namespace LaserGolf.Components
                 Rectangle srcRect = new Rectangle(0, 8 - (shotForce / 2), 1, 1);
 
 
-                int IND_WIDTH = 10;
+                int IND_WIDTH = 6;
                 // Calculate where the location of the destination rectangle
 
                 // Convert the x and y coordiantes to world coordiantes not relavtive to the ball
@@ -370,13 +344,13 @@ namespace LaserGolf.Components
                 float newY = _position.Y + (_scale / 2);
 
                 // Move away in the correct direction
-                Vector2 drawLoc = new Vector2(-1 * IND_WIDTH / 2, -1f * ((_scale / 2) + 10 + shotForce));
+                Vector2 drawLoc = new Vector2(-1 * IND_WIDTH / 2, -1f * ((_scale / 2) + 10 + (shotForce * 2)));
                 drawLoc = Vector2.Transform(drawLoc, Matrix.CreateRotationZ((float) toRadians(shotAngle)));
                 newX += drawLoc.X;
                 newY += drawLoc.Y;
      
                 // Create the destination rectangle
-                Rectangle destRec = new Rectangle((int)Math.Round(newX), (int)Math.Round(newY), 10, shotForce);
+                Rectangle destRec = new Rectangle((int)Math.Round(newX), (int)Math.Round(newY), IND_WIDTH, shotForce * 2);
 
 
                 ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_shotIndicatorTex, destRec, srcRect, Color.White, (float) toRadians(shotAngle), new Vector2(0, 0), SpriteEffects.None, 0.0f);

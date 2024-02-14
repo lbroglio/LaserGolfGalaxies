@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace LaserGolf
+namespace LaserGolf.ConfigClasses
 {
     internal static class StripColors
     {
-  
+
         public static int RED = 1;
         public static int GREEN = 4;
         public static int BLUE = 7;

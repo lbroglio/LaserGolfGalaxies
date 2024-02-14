@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LaserGolf
+namespace LaserGolf.ConfigClasses
 {
     internal class TextureContainer : DrawableGameComponent
     {
@@ -27,11 +27,11 @@ namespace LaserGolf
 
         }
         public TextureContainer(Game game) : base(game)
-        {}
+        { }
 
         protected override void LoadContent()
         {
-            if(_colorStrip == null)
+            if (_colorStrip == null)
             {
                 _colorStrip = Game.Content.Load<Texture2D>("LGGColorStrip");
 
