@@ -83,7 +83,7 @@ namespace LaserGolf.Components.Obstacles
         /// Like all load time scaling values how each of these values are used is up to the sublass and subclasses are allowed to disallow (not implement)
         /// these shifts
         /// </summary>
-        protected Vector4 ConstantShifts
+        public Vector4 ConstantShifts
         {
             get { return _constantShifts; } 
             set { _constantShifts = value; }
@@ -204,6 +204,11 @@ namespace LaserGolf.Components.Obstacles
         private bool collding = false;
 
         /// <summary>
+        /// The amount that this Wall is rotated in degrees
+        /// </summary>
+        private float _rotation = 0.0f;
+
+        /// <summary>
         /// Create a new Wall and intialize its place in the world
         /// </summary>
         /// <param name="game">The Game object this Wall is a part of</param>
@@ -220,6 +225,27 @@ namespace LaserGolf.Components.Obstacles
 
         }
 
+
+        /// <summary>
+        /// Create a new Wall and intialize its place in the world
+        /// </summary>
+        /// <param name="game">The Game object this Wall is a part of</param>
+        /// <param name="worldPos">A Point holding this Wall's position in the world</param>
+        /// <param name="width">The width (Size along the x axis) of this Wall in pixels</param>
+        /// <param name="height">The height (Size along the y axis) of this Wall in pixels</param>
+        /// <param name="rotation"> The number of degrees this rectangle is rotated </param>
+        public Wall(Game game, Point worldPos, int width, int height, float rotation) : base(game)
+        {
+            // Create the backing rectangle for this Wall
+            worldRect = new Rectangle(worldPos.X, worldPos.Y, width, height);
+
+            //  Set the color as a location on the Color Strip
+            color = new Rectangle(StripColors.WHITE, 0, 1, 1);
+
+
+            _rotation = rotation;
+        }
+
         public override bool checkCollides(Ball checkColliding)
         {
             int ballXPos = (int) Math.Round(checkColliding.Position.X);
@@ -228,8 +254,9 @@ namespace LaserGolf.Components.Obstacles
             // Create a bounding box (rectangle) for the ball
             Rectangle boundingBox = new Rectangle(ballXPos, ballYPos, checkColliding.Scale, checkColliding.Scale);
 
+            // Collision for unrotated wall
             // Check if this Wall intersects the bounding box for the Ball
-            if(worldRect.Intersects(boundingBox))
+            if(_rotation == 0 && worldRect.Intersects(boundingBox))
             {
 
                 // If they do intersect do a pixel by pixel check for collision
@@ -259,6 +286,46 @@ namespace LaserGolf.Components.Obstacles
                     }
                 }
             }
+            else if(_rotation != 0)
+            {
+                // Calculate lower left corner for rect
+                double leftX = worldRect.Height * Math.Cos(Ball.toRadians(90 + _rotation));
+                double leftY = worldRect.Height * Math.Sin(Ball.toRadians(90 + _rotation));
+
+                Vector2 lowerLeft = new Vector2((float) leftX + worldRect.X, (float) leftY + worldRect.Y);
+
+
+                // Calculate x of rectangle at the point of the ball
+                float slope = (lowerLeft.Y - worldRect.Y) / (lowerLeft.X - worldRect.X);
+                float intercept = (worldRect.Y - (slope * worldRect.X));
+                float xcheck = (checkColliding.Position.Y - intercept) / slope;
+
+                // Get a point on the rect to compare to
+                Vector2 closestPoint;
+                // If the ball x point isn't within the rect set it to the corners 
+                if(checkColliding.Position.Y <= worldRect.Y)
+                {
+                    closestPoint = new Vector2(worldRect.X, worldRect.Y);
+                }
+                else if (checkColliding.Position.Y >= lowerLeft.Y)
+                {
+                    closestPoint = new Vector2(lowerLeft.X, lowerLeft.Y);
+                }
+                else
+                {
+                    closestPoint = new Vector2(xcheck, checkColliding.Position.Y);
+                }
+
+                //Get the dist from the cloest point to the ball
+                double dist = Math.Pow((closestPoint.X - checkColliding.Position.X), 2) + Math.Pow((closestPoint.Y - checkColliding.Position.Y), 2);
+                dist = Math.Sqrt(dist);
+
+                if (Math.Abs(dist) <= checkColliding.Scale / 2.0f){
+                    Debug.WriteLine("FIRED");
+                    return true;
+                }
+
+            }
 
             // If this point is reached the bounding box and the wall do not intersect so false is returned
             collding = false;
@@ -267,17 +334,46 @@ namespace LaserGolf.Components.Obstacles
 
         public override Vector2 collideWith(Ball colliding, GameTime gameTime)
         {
+            /*
+            Vector2 c1Normalized = Vector2.Normalize(imVel);
+            Vector3 c1Normal3D = Vector3.Cross(new Vector3(c1Normalized, 0), new Vector3(0, 0, -1));
+            Vector2 c1Norm = new Vector2(c1Normal3D.X, c1Normal3D.Y);
+            */
+
+
             Vector2 normal;
-            // Get normal vector for the side facing the ball
-            Vector2 diffVector = new Vector2(colliding.Position.X - worldRect.X, colliding.Position.Y - worldRect.Y);
-            if(diffVector.Y < 0 || diffVector.Y > worldRect.Height)
+
+            // Collision for unrotated
+            if(_rotation == 0)
             {
-                normal = Vector2.UnitY;
+                // Get normal vector for the side facing the ball
+                Vector2 diffVector = new Vector2(colliding.Position.X - worldRect.X, colliding.Position.Y - worldRect.Y);
+                if (diffVector.Y < 0 || diffVector.Y > worldRect.Height)
+                {
+                    normal = Vector2.UnitY;
+                }
+                else
+                {
+                    normal = Vector2.UnitX;
+                }
             }
             else
             {
-                normal = Vector2.UnitX;
+
+                // Calculate the slope
+                double leftX = worldRect.Height * Math.Cos(Ball.toRadians(90 + _rotation));
+                double leftY = worldRect.Height * Math.Sin(Ball.toRadians(90 + _rotation));
+
+                Vector2 lowerLeft = new Vector2((float)leftX + worldRect.X, (float)leftY + worldRect.Y);
+
+                // Calculate x of rectangle at the point of the ball
+                Vector2 slope = new Vector2(worldRect.X, worldRect.Y) - lowerLeft;
+                slope.Normalize();
+
+                Vector3 normal3D = Vector3.Cross(new Vector3(slope, 0), new Vector3(0, 0, -1));
+                normal = new Vector2(normal3D.X, normal3D.Y);
             }
+
 
             return Vector2.Reflect(colliding.Velocity, normal);
         }
@@ -314,7 +410,7 @@ namespace LaserGolf.Components.Obstacles
         public override void Draw(GameTime gameTime)
         {
 
-            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, worldRect, color, Color.White, 0f,  new Vector2(0,0), SpriteEffects.None, 0.1f);
+            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, worldRect, color, Color.White, (float)Ball.toRadians(_rotation),  new Vector2(0,0), SpriteEffects.None, 0.1f);
 
             base.Draw(gameTime);
         }
@@ -559,23 +655,26 @@ namespace LaserGolf.Components.Obstacles
                 theta = (float) Math.Atan(_velocityChange.Y / _velocityChange.X);
             }
 
+
+            // Draw texture depending on direction
             if (_isRedTex)
             {
-                Rectangle srcRect = new Rectangle(0, 0, _redTexture.Width, _redTexture.Height);
-                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_redTexture, worldRect, srcRect, Color.White, theta, new Vector2(worldRect.X + (worldRect.Width /  2),  worldRect.Y + (_redTexture.Height / 2)), SpriteEffects.None, 0.5f);
+                Vector2 origin = new(_redTexture.Width / 2f, _redTexture.Height / 2f);
+                Rectangle dest = new Rectangle(worldRect.X, worldRect.Y, worldRect.Width, worldRect.Height);
+                dest.X = (int)(dest.X + dest.Width / 2f);
+                dest.Y = (int)(dest.Y + dest.Height / 2f);
+                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_redTexture, dest, null, Color.White, theta, origin, SpriteEffects.None, 0.5f);
 
             }
             else
             {
-                Rectangle srcRect = new Rectangle(0, 0, _blueTexture.Width, _blueTexture.Height);
-                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_blueTexture, worldRect, srcRect, Color.White, theta, new Vector2(worldRect.X + (worldRect.Width / 2), worldRect.Y + (_redTexture.Height / 2)), SpriteEffects.None, 0.5f);
+                Vector2 origin = new(_blueTexture.Width / 2f, _blueTexture.Height / 2f);
+                Rectangle dest = new Rectangle(worldRect.X, worldRect.Y, worldRect.Width, worldRect.Height);
+                dest.X = (int)(dest.X + dest.Width / 2f);
+                dest.Y = (int)(dest.Y + dest.Height / 2f);
+                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_blueTexture, dest, null, Color.White, theta, origin, SpriteEffects.None, 0.5f);
 
             }
-
-            colorStrip = ((TextureContainer)Game.Services.GetService(typeof(TextureContainer))).ColorStrip;
-
-            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, worldRect, new Rectangle(StripColors.YELLOW, 0, 1, 1), Color.White, 0, new Vector2(0, 0), SpriteEffects.None, 0.0f);
-
 
             base.Draw(gameTime);
         }

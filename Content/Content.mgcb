@@ -13,6 +13,13 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin File.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:File.spritefont;posdisplayfont.spritefont
+
 #begin LGGBallTexture.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -84,4 +91,11 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:LGGSlopeTextureRed.png
+
+#begin posdisplayfont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:posdisplayfont.spritefont
 

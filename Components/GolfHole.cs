@@ -117,6 +117,47 @@ namespace LaserGolf.Components
 
         }
 
+        public  bool checkWin(Ball checkColliding)
+        {
+
+            int ballXPos = (int)Math.Round(checkColliding.Position.X);
+            int ballYPos = (int)Math.Round(checkColliding.Position.Y);
+
+            // Create a bounding box (rectangle) for the ball and the hole
+            Rectangle ballBoundingBox = new Rectangle(ballXPos, ballYPos, checkColliding.Scale, checkColliding.Scale);
+            Rectangle holeBoundingBox = new Rectangle(_position.X, _position.Y, _scale, _scale);
+
+            // Check if this Wall intersects the bounding box for the Ball
+            if (holeBoundingBox.Intersects(ballBoundingBox))
+            {
+
+                // If they do intersect do a pixel by pixel check for collision
+                Rectangle intersect = Rectangle.Intersect(holeBoundingBox, ballBoundingBox);
+
+                for (int i = intersect.X; i < intersect.X + intersect.Width; i++)
+                {
+                    for (int j = intersect.Y; j < intersect.Y + intersect.Height; j++)
+                    {
+                        int ballPoint = checkColliding.PixelColor[i - ballXPos, j - ballYPos].A;
+                        //int wallPoint = imColor[x - (int)imPos.X, y - (int)imPos.Y].A;
+
+                        if (ballPoint != 0)
+                        {
+
+                            return true;
+
+
+
+                        }
+                    }
+                }
+            }
+
+            // If this point is reached the two bounding boxes do not intersect or the pixel by pixel check fails
+            return false;
+        }
+
+
         protected override void LoadContent()
         {
             // Load  the texture for the ball but only once

@@ -229,13 +229,13 @@ namespace LaserGolf.Maps
             wallPosY = (int)System.Math.Round(screenSize * 0.1, 0);
             wallSize = (int)System.Math.Round(screenSize * 0.075, 0);
 
-            /*
+            
             // Create the Wall Object
-            Wall bounceWall = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize);
-            bounceWall.ScaleHeight = (int) Math.Round(screenSize * aspectRatio);
+            Wall bounceWall = new Wall(game, new Point(wallPosX, wallPosY), lineSize, wallSize, 30);
+            bounceWall.ScaleHeight = (int) Math.Round(screenSize * screenRatioMult);
             bounceWall.ScaleX = screenSize;
-            bounceWall.ScaleY = (int) Math.Round(screenSize * aspectRatio);
-            */
+            bounceWall.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+            
 
             // Create borders
 
@@ -268,6 +268,7 @@ namespace LaserGolf.Maps
             upSlope.ScaleHeight = screenSize;
             upSlope.ScaleX = screenSize;
             upSlope.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
+            upSlope.ConstantShifts = new Vector4(8, 0, -8, 0);
 
 
             slopeX = (screenSize * 0.3f);
@@ -278,7 +279,7 @@ namespace LaserGolf.Maps
             downSlope.ScaleHeight = screenSize;
             downSlope.ScaleX = screenSize;
             downSlope.ScaleY = (int) Math.Round(screenSize * screenRatioMult);
-
+            downSlope.ConstantShifts = new Vector4(0, 8, 0, -8);
 
 
             // Create hole
@@ -311,8 +312,7 @@ namespace LaserGolf.Maps
             _obstacles.Add(bottomBorder);
             _obstacles.Add(upSlope);
             _obstacles.Add(downSlope);
-
-            //_obstacles.Add(bounceWall);
+            _obstacles.Add(bounceWall);
 
 
         }

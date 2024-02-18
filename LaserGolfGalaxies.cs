@@ -5,60 +5,106 @@ using LaserGolf.Maps;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace LaserGolf
 {
     public class LaserGolfGalaxies : Game
     {
+        // Manager objects
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+
+        // Number of players
+        private int _numPlayers;
+
+        // Map elements
         private List<LaserGolfObstacle> _obstacles;
-        private Ball _playBall;
+        private Ball[] _playBalls;
         private Point _startLoc;
         private PlayScreen _screen;
+        private GolfHole _hole;
+
+        private SpriteFont dfont;
+        private int textY;
 
         /// <summary>
         /// Percentage to shrink velocity by every second 
         /// </summary>
         public readonly double FRICTION_COEFFICENT = 0.75;
 
-        public LaserGolfGalaxies()
+
+        // Function to draw a new map to the screen  and return the created map object for later use
+        private Map drawMap(int? mapSelector)
+        {
+            Map m;
+            // Create a randomly generated map
+            if (mapSelector == null)
+            {
+                m = new Map(this, 3.0 / 4.0);
+            }
+            // Get a preset map
+            else
+            {
+                m = new Map(this, (int) mapSelector, 3.0 / 4.0);
+            }
+
+            // Convert the MapElements to drawable MonoGame Objects
+            for (int i = 0; i < m.Obstacles.Count; i++)
+            {
+                LaserGolfObstacle currObs = m.Obstacles[i];
+                Components.Add(currObs);
+                _obstacles.Add(currObs);
+            }
+
+            Components.Add(m.Hole);
+            _hole = m.Hole;
+
+            return m;
+
+        }
+
+        public LaserGolfGalaxies(int numPlayers)
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+
+            _numPlayers = numPlayers;
         }
 
         protected override void Initialize()
         {
+
+
             TextureContainer textureCon = new TextureContainer(this);
             Services.AddService(typeof(TextureContainer), textureCon);
             Components.Add(textureCon);
 
             // Create the Map to play the Game on
-            Map map = new Map(this, 0, 3.0 / 4.0);
-
-            // TODO: Add your initialization logic here
-            _playBall = new Ball(this, map.BallPos);
-            _playBall.ScaleX = 100;
-            _playBall.ScaleY = 75;
-
-            Components.Add(_playBall);
-
             _obstacles = new List<LaserGolfObstacle>();
+            Map m = drawMap(0);
 
 
-            // Convert the MapElements to drawable MonoGame Objects
-            for (int i = 0; i < map.Obstacles.Count; i++)
+            // Add a ball for every player 
+            _playBalls = new Ball[_numPlayers];
+            for(int i=0; i < _numPlayers; i++)
             {
-                LaserGolfObstacle currObs = map.Obstacles[i];
-                Components.Add(currObs);
-                _obstacles.Add(currObs);
+                Ball temp = new Ball(this, m.BallPos, i);
+                temp.ScaleX = 100;
+                temp.ScaleY = 75;
+
+                Components.Add(temp);
+                _playBalls[i] = temp;
             }
 
-            Components.Add(map.Hole);
 
+
+            //  Create object to track game state elements
+            // Such as player scores and the current players turn
+            StateTracker tracker = new StateTracker(_numPlayers);
+            Services.AddService(typeof(StateTracker), tracker);
 
             _screen = new PlayScreen(1080, 810);
             Services.AddService(typeof(PlayScreen), _screen);
@@ -67,6 +113,8 @@ namespace LaserGolf
             _graphics.PreferredBackBufferWidth = 1080;
             _graphics.PreferredBackBufferHeight = 1010;
             _graphics.ApplyChanges();
+
+            textY = 900;
 
             base.Initialize();
         }
@@ -79,8 +127,10 @@ namespace LaserGolf
             Services.AddService(typeof(SpriteBatch), _spriteBatch);
             base.LoadContent();
 
+            dfont = Content.Load<SpriteFont>("posdisplayfont");
+
             //Set the start loc 
-            _startLoc = new Point((int)System.Math.Round(_playBall.Position.X), (int)System.Math.Round(_playBall.Position.Y));
+            _startLoc = new Point((int)System.Math.Round(_playBalls[0].Position.X), (int)System.Math.Round(_playBalls[0].Position.Y));
 
 
 
@@ -97,16 +147,26 @@ namespace LaserGolf
 
             base.Update(gameTime);
 
-            //Check collision for the ball and the obstacles
+            //Check collision for only the current player's  ball and the obstacles
+            int currPlayer = ((StateTracker)Services.GetService(typeof(StateTracker))).CurrentPlayer;
+            Ball currBall = _playBalls[currPlayer];
             for(int i = 0;i < _obstacles.Count; i++)
             {
                 LaserGolfObstacle currOb = _obstacles[i];
-                if(currOb.checkCollides(_playBall))
+                if (currOb.checkCollides(currBall))
                 {
-                    
-                    _playBall.Velocity = currOb.collideWith(_playBall, gameTime);
+
+                    currBall.Velocity = currOb.collideWith(currBall, gameTime);
                 }
             }
+            _playBalls[currPlayer] = currBall;
+
+            // Check for collision with the hole 
+            if (_hole.checkWin(_playBalls[0]))
+            {
+                Exit();
+            }
+
 
         }
 
@@ -122,6 +182,25 @@ namespace LaserGolf
             int rectY = (int)System.Math.Round(_startLoc.Y + ((_screen.Width / 40) * 1.1));
             Rectangle destRect = new Rectangle(rectX, rectY, rectWidth, rectHeight);
 
+
+
+
+            for(int i=0; i < _numPlayers; i++)
+            {
+                int[] playerScores = ((StateTracker)Services.GetService(typeof(StateTracker))).Score;
+                Vector2 textPos = new Vector2(50 + (i * 250), textY);
+
+                Color c = Color.White;
+                // Draw the current players score in yellow 
+                if(i == ((StateTracker)Services.GetService(typeof(StateTracker))).CurrentPlayer){
+
+                    c = Color.Yellow;
+                }
+
+                _spriteBatch.DrawString(dfont, "Player " + (i + 1) + " Score: " + playerScores[i], textPos, c);
+            }
+
+            
 
             _spriteBatch.Draw(((TextureContainer)Services.GetService(typeof(TextureContainer))).ColorStrip, destRect, new Rectangle(StripColors.YELLOW, 0, 1, 1), Color.Yellow);
 
