@@ -1,6 +1,5 @@
 ﻿using System;
 
-int  NUM_PLAYERS = 1;
 
-using var game = new LaserGolf.LaserGolfGalaxies(NUM_PLAYERS);
+using var game = new LaserGolf.LaserGolfGalaxies();
 game.Run();

@@ -26,6 +26,7 @@ namespace LaserGolf
         private PlayScreen _screen;
         private GolfHole _hole;
 
+        // Text
         private SpriteFont dfont;
         private int textY;
 
@@ -33,6 +34,9 @@ namespace LaserGolf
         /// Percentage to shrink velocity by every second 
         /// </summary>
         public readonly double FRICTION_COEFFICENT = 0.75;
+
+        // Used for buffering input to add players
+        private bool bufferAdd = true;
 
 
         // Function to draw a new map to the screen  and return the created map object for later use
@@ -65,13 +69,13 @@ namespace LaserGolf
 
         }
 
-        public LaserGolfGalaxies(int numPlayers)
+        public LaserGolfGalaxies()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
-            _numPlayers = numPlayers;
+            _numPlayers = 1;
         }
 
         protected override void Initialize()
@@ -84,12 +88,12 @@ namespace LaserGolf
 
             // Create the Map to play the Game on
             _obstacles = new List<LaserGolfObstacle>();
-            Map m = drawMap(0);
+            Map m = drawMap(null);
 
 
             // Add a ball for every player 
-            _playBalls = new Ball[_numPlayers];
-            for(int i=0; i < _numPlayers; i++)
+            _playBalls = new Ball[4];
+            for(int i=0; i < 4; i++)
             {
                 Ball temp = new Ball(this, m.BallPos, i);
                 temp.ScaleX = 100;
@@ -103,7 +107,7 @@ namespace LaserGolf
 
             //  Create object to track game state elements
             // Such as player scores and the current players turn
-            StateTracker tracker = new StateTracker(_numPlayers);
+            StateTracker tracker = new StateTracker();
             Services.AddService(typeof(StateTracker), tracker);
 
             _screen = new PlayScreen(1080, 810);
@@ -139,13 +143,30 @@ namespace LaserGolf
         protected override void Update(GameTime gameTime)
         {
 
-  
+        
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
            
 
             base.Update(gameTime);
+
+            // On the first turn allow for adding players
+            bool isFirst = ((StateTracker)Services.GetService(typeof(StateTracker))).isFirst;
+
+            if (isFirst && Keyboard.GetState().IsKeyDown(Keys.X) && _numPlayers < 4 && bufferAdd)
+            {
+                bool[] temp =  ((StateTracker)Services.GetService(typeof(StateTracker))).PlayersActive;
+                temp[_numPlayers] = true;
+                ((StateTracker)Services.GetService(typeof(StateTracker))).PlayersActive = temp;
+                _numPlayers += 1;
+                bufferAdd = false;
+            }
+
+            if(!bufferAdd && Keyboard.GetState().IsKeyUp(Keys.X))
+            {
+                bufferAdd = true;
+            }
 
             //Check collision for only the current player's  ball and the obstacles
             int currPlayer = ((StateTracker)Services.GetService(typeof(StateTracker))).CurrentPlayer;
@@ -162,9 +183,30 @@ namespace LaserGolf
             _playBalls[currPlayer] = currBall;
 
             // Check for collision with the hole 
-            if (_hole.checkWin(_playBalls[0]))
+            if (_hole.checkWin(_playBalls[currPlayer]))
             {
-                Exit();
+                _playBalls[currPlayer].Velocity = new Vector2(0, 0);
+                // Remove this player's ball
+                bool[] players = ((StateTracker)Services.GetService(typeof(StateTracker))).PlayersActive;
+                players[currPlayer] = false;
+                ((StateTracker)Services.GetService(typeof(StateTracker))).PlayersActive = players;
+
+                bool activeFound = false;
+                // Check if all player's balls are removed
+                for (int i=0; i < players.Length; i++)
+                {
+                    if (players[i])
+                    {
+                        activeFound = true;
+                    }
+                }
+
+                // If all player's are out set the flag for input to regenerate the map
+                if(activeFound == false)
+                {
+                    Exit();
+                }
+
             }
 
 

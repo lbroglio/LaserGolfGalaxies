@@ -321,7 +321,6 @@ namespace LaserGolf.Components.Obstacles
                 dist = Math.Sqrt(dist);
 
                 if (Math.Abs(dist) <= checkColliding.Scale / 2.0f){
-                    Debug.WriteLine("FIRED");
                     return true;
                 }
 
@@ -359,7 +358,6 @@ namespace LaserGolf.Components.Obstacles
             }
             else
             {
-
                 // Calculate the slope
                 double leftX = worldRect.Height * Math.Cos(Ball.toRadians(90 + _rotation));
                 double leftY = worldRect.Height * Math.Sin(Ball.toRadians(90 + _rotation));
@@ -403,6 +401,7 @@ namespace LaserGolf.Components.Obstacles
                 worldRect.Y = (int)Math.Round((worldRect.Y / ScaleY) * screen.Height);
             }
 
+            worldRect = new Rectangle((int)Math.Round(worldRect.X + ConstantShifts.X), (int)Math.Round(worldRect.Y + ConstantShifts.Y), (int)Math.Round(worldRect.Width + ConstantShifts.Z), (int)Math.Round(worldRect.Height + ConstantShifts.W));
 
             base.LoadContent();
         }
@@ -492,7 +491,7 @@ namespace LaserGolf.Components.Obstacles
 
             //  Set the color as a location on the Color Strip
 
-            if (velocityChange.X > velocityChange.Y )
+            if (Math.Abs(velocityChange.X) > Math.Abs(velocityChange.Y))
             {
                 if(velocityChange.X > 0)
                 {
@@ -505,7 +504,7 @@ namespace LaserGolf.Components.Obstacles
 
                 }
             }
-            else if (velocityChange.Y > velocityChange.X)
+            else if (Math.Abs(velocityChange.Y) > Math.Abs(velocityChange.X))
             {
                 if (velocityChange.Y < 0)
                 {
@@ -682,17 +681,38 @@ namespace LaserGolf.Components.Obstacles
 
     internal class BorderField : Wall
     {
+        /// <summary>
+        /// Amount to scale the color by to control opacity
+        /// </summary>
+        private float _colorScale = 0.5f;
+
         public BorderField(Game game, Point worldPos, int width, int height) : base(game, worldPos, width, height)
         {
             //  Set the color as a location on the Color Strip
             color = new Rectangle(StripColors.BLUE, 0, 1, 1);
         }
 
+        public override bool checkCollides(Ball checkColliding)
+        {
+            bool ret = base.checkCollides(checkColliding);
+
+            if(ret)
+            {
+                _colorScale = 1.0f;
+            }
+            else
+            {
+                _colorScale = 0.5f;
+            }
+
+            return ret;
+        }
+
 
         public override void Draw(GameTime gameTime)
         {
 
-            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, worldRect, color, Color.Blue * 0.5f);
+            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, worldRect, color, Color.Blue * _colorScale);
 
         }
 

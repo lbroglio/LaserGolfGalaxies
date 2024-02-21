@@ -27,6 +27,11 @@ namespace LaserGolf.ConfigClasses
         private int[] _score;
 
         /// <summary>
+        /// Track if it is the first turn for this game
+        /// </summary>
+        private bool _isFirst;
+
+        /// <summary>
         /// Variable which stores the users current  score
         /// </summary>
         public int[] Score
@@ -44,6 +49,18 @@ namespace LaserGolf.ConfigClasses
             set { _currentPlayer = value; }
         }
 
+        public bool[] PlayersActive
+        {
+            get { return _playersActive; }
+            set { _playersActive = value; }
+        }
+
+        public bool isFirst
+        {
+            get { return _isFirst; }
+            set { _isFirst = value; }
+        }
+
         public void nextTurn()
         {
             // Increment to the next turn skipping player's who have already finished
@@ -54,24 +71,30 @@ namespace LaserGolf.ConfigClasses
                 _currentPlayer = (_currentPlayer + 1) % _playersActive.Length;
                 checkActive = _playersActive[_currentPlayer];
             }
+
+            //  Set that this isn't the first turn
+            isFirst = false;
         }
 
         /// <summary>
         /// Initialize the tracker
         /// </summary>
-        public StateTracker(int numPlayers)
+        public StateTracker()
         {
-            _score = new int[numPlayers];
-            _playersActive = new bool[numPlayers];
+            _score = new int[4];
+            _playersActive = new bool[4];
 
             // Initialize the arrays
-            for(int i=0; i < numPlayers; i++)
+            for(int i=0; i < 4; i++)
             {
                 _score[i] = 0;
-                _playersActive[i] = true;  
+                _playersActive[i] = false;  
             }
+            _playersActive[0] = true;
 
             _currentPlayer = 0;
+
+            _isFirst = true;
 
         }
     }
