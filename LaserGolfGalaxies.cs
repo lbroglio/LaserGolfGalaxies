@@ -3,10 +3,13 @@ using LaserGolf.Components.Obstacles;
 using LaserGolf.ConfigClasses;
 using LaserGolf.Maps;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LaserGolf
 {
@@ -30,6 +33,10 @@ namespace LaserGolf
         private SpriteFont dfont;
         private int textY;
 
+        // Sound
+        private SoundEffect _holeReachedSound;
+        private Song _backgroundMusic;
+
         /// <summary>
         /// Percentage to shrink velocity by every second 
         /// </summary>
@@ -38,6 +45,8 @@ namespace LaserGolf
         // Used for buffering input to add players
         private bool bufferAdd = true;
 
+        // Used for tracking when to end the game
+        private double endTime = -1f;
 
         // Function to draw a new map to the screen  and return the created map object for later use
         private Map drawMap(int? mapSelector)
@@ -74,6 +83,7 @@ namespace LaserGolf
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+
 
             _numPlayers = 1;
         }
@@ -120,6 +130,7 @@ namespace LaserGolf
 
             textY = 900;
 
+            Window.Title = "Laser Golf Galaxies";
             base.Initialize();
         }
 
@@ -136,14 +147,17 @@ namespace LaserGolf
             //Set the start loc 
             _startLoc = new Point((int)System.Math.Round(_playBalls[0].Position.X), (int)System.Math.Round(_playBalls[0].Position.Y));
 
-
+            // Load sounds
+            _holeReachedSound = Content.Load<SoundEffect>("holeReachedSound");
+            _backgroundMusic = Content.Load<Song>("backgroundMusic");
+            MediaPlayer.Play(_backgroundMusic);
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Volume = 0.3f;
 
         }
 
         protected override void Update(GameTime gameTime)
         {
-
-        
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -201,9 +215,13 @@ namespace LaserGolf
                     }
                 }
 
-                // If all player's are out set the flag for input to regenerate the map
+                // Play sound
+                _holeReachedSound.Play();
+
+                // If all player's set the flag to end the game
                 if(activeFound == false)
                 {
+
                     Exit();
                 }
 

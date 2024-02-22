@@ -1,5 +1,6 @@
 ﻿using LaserGolf.ConfigClasses;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -86,6 +87,10 @@ namespace LaserGolf.Components
         /// Track whether to pass turn when moving
         /// </summary>
         private bool _turnCheck = false;
+        /// <summary>
+        /// Sound that plays when the player hits the ball
+        /// </summary>
+        private SoundEffect _hitSound;
 
 
 
@@ -166,6 +171,8 @@ namespace LaserGolf.Components
             {
                 _texture = Game.Content.Load<Texture2D>("LGGBallTexture");
             }
+
+            _hitSound = Game.Content.Load<SoundEffect>("ballHitSound");
 
 
 
@@ -324,6 +331,9 @@ namespace LaserGolf.Components
 
                         // Increment score for this ball's player
                         ((StateTracker)Game.Services.GetService(typeof(StateTracker))).Score[_owner] += 1;
+
+                        // Play sound
+                        _hitSound.Play();
 
                     }
 

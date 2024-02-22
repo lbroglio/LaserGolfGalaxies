@@ -208,7 +208,15 @@ namespace LaserGolf.Components
         public override void Draw(GameTime gameTime)
         {
             ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_texture, new Rectangle(_position.X, _position.Y, _scale, _scale), new Rectangle(0, 0, _texture.Width, _texture.Height), Color.Green);
+
+
+            // Create a lighting effects
+            float lightScalar = 0.2f;
+            // Effects for vertical axis locked
+            ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(_texture, new Rectangle(_position.X - (_scale / 2), _position.Y - (_scale /  2), (_scale * 2), (_scale * 2)), new Rectangle(0, 0, _texture.Width, _texture.Height), Color.Green * lightScalar,  0.0f, new Vector2(0,0), SpriteEffects.None, 0.9f);
+
             base.Draw(gameTime);
+
 
         }
 

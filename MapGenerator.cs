@@ -615,7 +615,7 @@ namespace LaserGolf.Maps
                 // Randomly choose where to place the slope
                 int xPos = rand.Next(recStartX + 1, (recStartX + recSize) - tunnelSize);
 
-                Slope slope = new Slope(game, new Vector2(xPos, tunnelLoc.Y), tunnelSize, tunnelSize, new Vector2(120, 0));
+                Slope slope = new Slope(game, new Vector2(xPos, tunnelLoc.Y), tunnelSize, tunnelSize, new Vector2(-120, 0));
                 slope.ScaleWidth = screenSize;
                 slope.ScaleHeight = screenSize;
                 slope.ScaleX = screenSize;
@@ -629,7 +629,7 @@ namespace LaserGolf.Maps
                 // Randomly choose where to place the slope
                 int xPos = rand.Next(recStartX + 1, (recStartX + recSize) - tunnelSize);
 
-                Slope slope = new Slope(game, new Vector2(xPos, tunnelLoc.Y), tunnelSize, tunnelSize, new Vector2(-120, 0));
+                Slope slope = new Slope(game, new Vector2(xPos, tunnelLoc.Y), tunnelSize, tunnelSize, new Vector2(120, 0));
                 slope.ScaleWidth = screenSize;
                 slope.ScaleHeight = screenSize;
                 slope.ScaleX = screenSize;

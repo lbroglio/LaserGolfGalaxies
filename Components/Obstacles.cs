@@ -1,5 +1,6 @@
 ﻿using LaserGolf.ConfigClasses;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -208,6 +209,8 @@ namespace LaserGolf.Components.Obstacles
         /// </summary>
         private float _rotation = 0.0f;
 
+        protected SoundEffect _collisionSound;
+
         /// <summary>
         /// Create a new Wall and intialize its place in the world
         /// </summary>
@@ -372,6 +375,8 @@ namespace LaserGolf.Components.Obstacles
                 normal = new Vector2(normal3D.X, normal3D.Y);
             }
 
+            // play collision audio
+            _collisionSound.Play();
 
             return Vector2.Reflect(colliding.Velocity, normal);
         }
@@ -379,6 +384,8 @@ namespace LaserGolf.Components.Obstacles
         protected override void LoadContent()
         {
             PlayScreen screen = (PlayScreen)Game.Services.GetService(typeof(PlayScreen));
+
+            _collisionSound = Game.Content.Load<SoundEffect>("wallCollisionSound");
 
             // Scale the sides and position if indicated
             if (ScaleWidth != 0.0)
@@ -410,6 +417,33 @@ namespace LaserGolf.Components.Obstacles
         {
 
             ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, worldRect, color, Color.White, (float)Ball.toRadians(_rotation),  new Vector2(0,0), SpriteEffects.None, 0.1f);
+
+            // Create a lighting effects
+            float lightScalar = 0.2f;
+            // Effects for vertical axis locked
+            if(worldRect.Height > worldRect.Width)
+            {
+
+                Rectangle leftLightEffect = new Rectangle(worldRect.X + worldRect.Width, worldRect.Y, worldRect.Width, worldRect.Height);
+                Rectangle rightLightEffect = new Rectangle(worldRect.X - worldRect.Width, worldRect.Y, worldRect.Width, worldRect.Height);
+
+                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, leftLightEffect, color, Color.White * lightScalar, (float)Ball.toRadians(_rotation), new Vector2(0, 0), SpriteEffects.None, 0.9f);
+                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, rightLightEffect, color, Color.White * lightScalar, (float)Ball.toRadians(_rotation), new Vector2(0, 0), SpriteEffects.None, 0.9f);
+
+            }
+            // Effects for horizontal axis locked
+            else if (worldRect.Width > worldRect.Height)
+            {
+
+                Rectangle leftLightEffect = new Rectangle(worldRect.X, worldRect.Y + worldRect.Height, worldRect.Width, worldRect.Height);
+                Rectangle rightLightEffect = new Rectangle(worldRect.X, worldRect.Y - worldRect.Height, worldRect.Width, worldRect.Height);
+
+                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, leftLightEffect, color, Color.White * lightScalar, (float)Ball.toRadians(_rotation), new Vector2(0, 0), SpriteEffects.None, 0.9f);
+                ((SpriteBatch)Game.Services.GetService(typeof(SpriteBatch))).Draw(colorStrip, rightLightEffect, color, Color.White * lightScalar, (float)Ball.toRadians(_rotation), new Vector2(0, 0), SpriteEffects.None, 0.9f);
+
+            }
+
+
 
             base.Draw(gameTime);
         }
@@ -619,6 +653,8 @@ namespace LaserGolf.Components.Obstacles
             //  Create the backing rectangle for this Slope
             worldRect = new Rectangle((int)Math.Round(_locationPreLoad.X + _constantShifts.X) , (int)Math.Round(_locationPreLoad.Y + _constantShifts.Y), (int)Math.Round(_dimensionsPreLoad.X + _constantShifts.Z) , (int)Math.Round(_dimensionsPreLoad.Y + _constantShifts.W));
 
+            
+
             base.LoadContent();
         }
 
@@ -690,6 +726,12 @@ namespace LaserGolf.Components.Obstacles
         {
             //  Set the color as a location on the Color Strip
             color = new Rectangle(StripColors.BLUE, 0, 1, 1);
+        }
+
+        protected override void LoadContent()
+        {
+            base.LoadContent();
+            _collisionSound = Game.Content.Load<SoundEffect>("borderCollisionSound");
         }
 
         public override bool checkCollides(Ball checkColliding)
